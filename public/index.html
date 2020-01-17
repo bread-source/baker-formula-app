@@ -14,22 +14,16 @@
         </tr>
         <tr>
           <td>Flour</td>
-          <td>100%</td>
-          <td><input data-target="formula.flourWeight" data-action="formula#setFlourWeight" type="number" step="0.01"></td>
+          <td><input data-target="formula.ingredientPercent" type="number" value="100" readonly></td>
+          <td><input data-target="formula.ingredientWeight" data-action="formula#calculateDoughWeight" type="number" step="0.01"></td>
           <td></td>
-        </tr>
-        <tr>
-          <td><input data-target="formula.ingredientName" type="string"></td>
-          <td><input data-target="formula.ingredientPercent" data-action="formula#updateWeights" type="number" step="0.01"></td>
-          <td><input data-target="formula.ingredientWeight" data-action="formula#calculateFlourWeight" type="number" step="0.01"></td>
-          <td><button data-action="formula#deleteIngredient">-</button></td>
         </tr>
       </table>
       <table>
         <tr>
           <th>Totals:</th>
-          <th><input data-target="formula.totalPercent" type="number" step="0.01" readonly></th>
-          <th><input data-target="formula.totalWeight" data-action="formula#calculateFlourWeight" type="number" step="0.01"></th>
+          <th><input data-target="formula.totalPercent" type="number" readonly></th>
+          <th><input data-target="formula.totalDoughWeight" data-action="formula#updateIngredientWeights" type="number" step="0.01"></th>
           <th></th>
         </tr>
       </table>
