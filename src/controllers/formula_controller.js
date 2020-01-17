@@ -4,9 +4,8 @@ export default class extends Controller {
 
   static get targets() {
     return [
+      "ingredient",
       "ingredientTable",
-      "ingredientPercent",
-      "ingredientWeight",
       "totalPercent",
       "totalDoughWeight"
     ]
@@ -26,26 +25,32 @@ export default class extends Controller {
 
   addIngredient() {
     let newIngredientRow = this.ingredientTableTarget.insertRow()
+    newIngredientRow.setAttribute("data-target", "formula.ingredient")
     newIngredientRow.innerHTML = `
-      <td><input data-target="formula.ingredientName" type="string"></td>
-      <td><input data-target="formula.ingredientPercent" data-action="formula#updateIngredientWeights" type="number" step="0.01"></td>
-      <td><input data-target="formula.ingredientWeight" data-action="formula#calculateDoughWeight" type="number" step="0.01"></td>
+      <td><input type="string"></td>
+      <td><input data-action="formula#updateIngredientWeights" type="number" step="0.01"></td>
+      <td><input data-action="formula#calculateDoughWeight" type="number" step="0.01"></td>
       <td><button data-action="formula#deleteIngredient">-</button></td>
     `.trim()
   }
 
   updateIngredientWeights() {
-    const totalPercentage = this.ingredientPercentTargets.reduce((percent, element) => {
-      const elementValue = this.sanitizeFloatInput(element.value)
+    const PERCENT_COLUMN = 1
+    const WEIGHT_COLUMN = 2
+
+    const totalPercentage = this.ingredientTargets.reduce((percent, element) => {
+      const elementValue = this.sanitizeFloatInput(element.cells[PERCENT_COLUMN].childNodes[0].value)
+      console.log(element.cells[PERCENT_COLUMN])
+      console.log(elementValue)
       return percent + elementValue
     }, 0)
     this.totalPercentTarget.value = totalPercentage
 
-    this.ingredientWeightTargets.forEach((element, index) => {
-      const ingredientPercent = this.sanitizeFloatInput(this.ingredientPercentTargets[index].value)
+    this.ingredientTargets.forEach((element, index) => {
+      const ingredientPercent = this.sanitizeFloatInput(element.cells[PERCENT_COLUMN].childNodes[0].value)
       let finalIngredientWeight = (ingredientPercent * this.totalDoughWeight) / totalPercentage
       finalIngredientWeight = Math.round(finalIngredientWeight * 100) / 100.0
-      element.value = finalIngredientWeight
+      element.cells[WEIGHT_COLUMN].childNodes[0].value = finalIngredientWeight
     })
   }
 
@@ -72,15 +77,15 @@ export default class extends Controller {
     return floatValue
   }
 
+  serializeFormula() {
+  }
+
   get totalDoughWeight() {
     return parseFloat(this.totalDoughWeightTarget.value)
   }
 
   set totalDoughWeight(value) {
-    let floatValue = parseFloat(value)
-    if(isNaN(floatValue)) {
-      this.totalDoughWeightTarget.value = 500
-    }
+    let floatValue = this.sanitizeFloatInput(value)
     floatValue = Math.round(floatValue * 100) / 100.0
     this.totalDoughWeightTarget.value = floatValue
     this.updateIngredientWeights()
