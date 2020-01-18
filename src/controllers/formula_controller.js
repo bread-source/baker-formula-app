@@ -1,4 +1,5 @@
 import { Controller } from "stimulus"
+import * as URLON from "urlon"
 
 export default class extends Controller {
 
@@ -12,10 +13,18 @@ export default class extends Controller {
   }
 
   connect() {
-    this.totalDoughWeight = 500
-    this.updateIngredientWeights()
-    this.addIngredient() // Temp while I flesh out on-connect behavior
+    try {
+      // Attempt to parse the URL
+      const serializedRecipe = window.location.search.substring(1)
+      this.deserializeFormula(serializedRecipe)
+    } catch {
+      // Fall back to a tried-and-true recipe
+      const baseRecipe = "$b:918.5&i@$n=Flour&p:100;&$n=Water&p:63;&$n=Yeast&p:2;&$n=Salt&p:2"
+      this.deserializeFormula(baseRecipe)
+    }
   }
+
+  // Controller methods
 
   deleteIngredient(event) {
     const ingredientIndex = event.target.parentElement.parentElement.rowIndex
@@ -23,15 +32,8 @@ export default class extends Controller {
     this.updateIngredientWeights()
   }
 
-  addIngredient() {
-    let newIngredientRow = this.ingredientTableTarget.insertRow()
-    newIngredientRow.setAttribute("data-target", "formula.ingredient")
-    newIngredientRow.innerHTML = `
-      <td><input type="string"></td>
-      <td><input data-action="formula#updateIngredientWeights" type="number" step="0.01"></td>
-      <td><input data-action="formula#calculateDoughWeight" type="number" step="0.01"></td>
-      <td><button data-action="formula#deleteIngredient">-</button></td>
-    `.trim()
+  newIngredient() {
+    this.addIngredient("", 0)
   }
 
   updateIngredientWeights() {
@@ -40,8 +42,6 @@ export default class extends Controller {
 
     const totalPercentage = this.ingredientTargets.reduce((percent, element) => {
       const elementValue = this.sanitizeFloatInput(element.cells[PERCENT_COLUMN].childNodes[0].value)
-      console.log(element.cells[PERCENT_COLUMN])
-      console.log(elementValue)
       return percent + elementValue
     }, 0)
     this.totalPercentTarget.value = totalPercentage
@@ -54,12 +54,22 @@ export default class extends Controller {
     })
   }
 
+  // Business Logic
+
+  addIngredient(name, percent) {
+    let newIngredientRow = this.ingredientTableTarget.insertRow()
+    newIngredientRow.setAttribute("data-target", "formula.ingredient")
+    newIngredientRow.innerHTML = `
+      <td><input type="string" value="${name}"></td>
+      <td><input data-action="formula#updateIngredientWeights" type="number" value="${percent}" step="0.01"></td>
+      <td><input data-action="formula#calculateDoughWeight" type="number" step="0.01"></td>
+      <td><button data-action="formula#deleteIngredient">-</button></td>
+    `.trim()
+  }
+
   calculateDoughWeight(event) {
     const newWeight = this.sanitizeFloatInput(event.target.value)
-    let totalPercent = parseInt(this.totalPercentTarget.value)
-    if(isNaN(totalPercent)) {
-      totalPercent = 0
-    }
+    const totalPercent = this.sanitizeIntInput(this.totalPercentTarget.value)
 
     // If an ingredient has 0% then it doesn't affect the final dough weight, so we should quit early
     const ingredientPercent = this.sanitizeFloatInput(event.target.parentElement.parentElement.cells[1].childNodes[0].value)
@@ -68,18 +78,6 @@ export default class extends Controller {
     }
     this.totalDoughWeight = (newWeight * totalPercent) / ingredientPercent
   }
-
-  sanitizeFloatInput(value) {
-    const floatValue = parseFloat(value)
-    if(isNaN(floatValue)) {
-      return 0
-    }
-    return floatValue
-  }
-
-  serializeFormula() {
-  }
-
   get totalDoughWeight() {
     return parseFloat(this.totalDoughWeightTarget.value)
   }
@@ -91,8 +89,66 @@ export default class extends Controller {
     this.updateIngredientWeights()
   }
 
-  // TODO Generate data-key for building from a parameter
-  //      Pull in data-key from URL when present, otherwise default recipe
+  // Helpers
+
+  /* The data format is custom and intentionally small to make smaller URLs
+   * It is defined as follows:
+   * {
+   *   b: [String] The base dough weight,
+   *   i: [Array] The list of ingredients
+   *     => {
+   *       n: [String] Name of the ingredient,
+   *       p: [Number] Percentage by weight of an ingredient
+   *     }
+   * }
+   */
+  serializeFormula() {
+    const NAME_COLUMN = 0
+    const PERCENT_COLUMN = 1
+
+    const serializedIngredients = this.ingredientTargets.map((element) => {
+      return {
+        n: element.cells[NAME_COLUMN].childNodes[0].value,
+        p: this.sanitizeIntInput(element.cells[PERCENT_COLUMN].childNodes[0].value)
+      }
+    })
+
+    const jsonFormula = {
+      b: this.totalDoughWeight,
+      i: serializedIngredients
+    }
+    console.log(URLON.stringify(jsonFormula))
+  }
+
+  deserializeFormula(formula) {
+    const deserializedFormula = URLON.parse(formula)
+
+    deserializedFormula.i.forEach((ingredient) => {
+      this.addIngredient(ingredient.n, ingredient.p)
+    })
+
+    this.totalDoughWeight = deserializedFormula.b
+  }
+
+
+  sanitizeFloatInput(value) {
+    const floatValue = parseFloat(value)
+    if(isNaN(floatValue)) {
+      return 0
+    }
+    return floatValue
+  }
+
+  sanitizeIntInput(value) {
+    const intValue = parseInt(value)
+    if(isNaN(intValue)) {
+      return 0
+    }
+    return intValue
+  }
+
+  // TODO Pull in data-key from URL when present, otherwise default recipe
+  //      Allow swapping of weights
+  //      Generate copyable link
   //      Stabilize table so it doesn't shrink when last ingredient is removed
-  //      Choose "base" recipe and populate based on that
 }
