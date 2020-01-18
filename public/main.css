@@ -1,7 +1,52 @@
 body {
+  background-color: #f9f7f7; /* Background color */
   max-width: 38rem;
   padding: 2rem;
   margin: auto;
+
+  font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+  font-size: 15px;
+  color: #112d4e; /* Font color */
+}
+
+button {
+  border: none;
+  border-radius: 4px;
+  height: 2em;
+}
+
+input {
+  width: 100%;
+  border: 2px solid #ddd;
+  border-radius: 4px;
+  font-size: 15px;
+  padding: 4px;
+}
+
+table.prettier-table {
+  width: 100%;
+  table-layout: fixed;
+}
+
+.prettier-table th, td {
+  border-bottom: 1px solid #ddd;
+  padding: 0.5em;
+}
+
+.prettier-table th:last-child, td:last-child {
+  width: 10%;
+}
+
+.prettier-table button {
+  background-color: #dbe2ef; /* Remove button */
+}
+
+button.add-button {
+  background-color: #3f72af; /* Add button */
+  color: white;
+  margin: 1em auto;
+  display: block;
+  font-size: 15px;
 }
 
 /* Hide integer field arrows in Chorme, Safari, Edge, Opera */

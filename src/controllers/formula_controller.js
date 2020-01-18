@@ -44,7 +44,7 @@ export default class extends Controller {
       const elementValue = this.sanitizeFloatInput(element.cells[PERCENT_COLUMN].childNodes[0].value)
       return percent + elementValue
     }, 0)
-    this.totalPercentTarget.value = totalPercentage
+    this.totalPercentTarget.innerHTML = `${totalPercentage}%`
 
     this.ingredientTargets.forEach((element, index) => {
       const ingredientPercent = this.sanitizeFloatInput(element.cells[PERCENT_COLUMN].childNodes[0].value)
@@ -52,6 +52,20 @@ export default class extends Controller {
       finalIngredientWeight = Math.round(finalIngredientWeight * 100) / 100.0
       element.cells[WEIGHT_COLUMN].childNodes[0].value = finalIngredientWeight
     })
+  }
+
+  calculateDoughWeight(event) {
+    const newWeight = this.sanitizeFloatInput(event.target.value)
+    const totalPercent = this.sanitizeIntInput(this.totalPercentTarget.innerHTML)
+
+    // If an ingredient has 0% then it doesn't affect the final dough weight,
+    // so we should quit early
+    const ingredientPercentCell = event.target.parentElement.parentElement.cells[1].childNodes[0]
+    const ingredientPercent = this.sanitizeFloatInput(ingredientPercentCell.value)
+    if(ingredientPercent <= 0) {
+      return
+    }
+    this.totalDoughWeight = (newWeight * totalPercent) / ingredientPercent
   }
 
   // Business Logic
@@ -63,21 +77,11 @@ export default class extends Controller {
       <td><input type="string" value="${name}"></td>
       <td><input data-action="formula#updateIngredientWeights" type="number" value="${percent}" step="0.01"></td>
       <td><input data-action="formula#calculateDoughWeight" type="number" step="0.01"></td>
-      <td><button data-action="formula#deleteIngredient">-</button></td>
+      <td><button data-action="formula#deleteIngredient">x</button></td>
     `.trim()
+    this.updateIngredientWeights()
   }
 
-  calculateDoughWeight(event) {
-    const newWeight = this.sanitizeFloatInput(event.target.value)
-    const totalPercent = this.sanitizeIntInput(this.totalPercentTarget.value)
-
-    // If an ingredient has 0% then it doesn't affect the final dough weight, so we should quit early
-    const ingredientPercent = this.sanitizeFloatInput(event.target.parentElement.parentElement.cells[1].childNodes[0].value)
-    if(ingredientPercent <= 0) {
-      return
-    }
-    this.totalDoughWeight = (newWeight * totalPercent) / ingredientPercent
-  }
   get totalDoughWeight() {
     return parseFloat(this.totalDoughWeightTarget.value)
   }
@@ -101,6 +105,9 @@ export default class extends Controller {
    *       p: [Number] Percentage by weight of an ingredient
    *     }
    * }
+   *
+   * The URLON library is used to translate the JSON into URL Object Notation
+   * for easier portability
    */
   serializeFormula() {
     const NAME_COLUMN = 0
@@ -130,7 +137,6 @@ export default class extends Controller {
     this.totalDoughWeight = deserializedFormula.b
   }
 
-
   sanitizeFloatInput(value) {
     const floatValue = parseFloat(value)
     if(isNaN(floatValue)) {
@@ -147,8 +153,7 @@ export default class extends Controller {
     return intValue
   }
 
-  // TODO Pull in data-key from URL when present, otherwise default recipe
-  //      Allow swapping of weights
+  // TODO Allow swapping of weights
   //      Generate copyable link
   //      Stabilize table so it doesn't shrink when last ingredient is removed
 }
