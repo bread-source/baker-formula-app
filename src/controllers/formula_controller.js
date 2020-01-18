@@ -5,6 +5,7 @@ export default class extends Controller {
 
   static get targets() {
     return [
+      "formulaName",
       "ingredient",
       "ingredientTable",
       "totalPercent",
@@ -19,7 +20,7 @@ export default class extends Controller {
       this.deserializeFormula(serializedRecipe)
     } catch {
       // Fall back to a tried-and-true recipe
-      const baseRecipe = "$b:918.5&i@$n=Flour&p:100;&$n=Water&p:63;&$n=Yeast&p:2;&$n=Salt&p:2"
+      const baseRecipe = "$n=White%20Bread&b:973.5&i@$n=Flour&p:100;&$n=Water&p:63;&$n=Honey&p:4;&$n=Oil&p:6;&$n=Yeast&p:2;&$n=Salt&p:2"
       this.deserializeFormula(baseRecipe)
     }
   }
@@ -68,6 +69,10 @@ export default class extends Controller {
     this.totalDoughWeight = (newWeight * totalPercent) / ingredientPercent
   }
 
+  setFormulaName(event) {
+    this.formulaName = event.target.value
+  }
+
   // Business Logic
 
   addIngredient(name, percent) {
@@ -93,11 +98,20 @@ export default class extends Controller {
     this.updateIngredientWeights()
   }
 
+  get formulaName() {
+    return this.formulaNameTarget.value
+  }
+
+  set formulaName(value) {
+    this.formulaNameTarget.value = value
+  }
+
   // Helpers
 
   /* The data format is custom and intentionally small to make smaller URLs
    * It is defined as follows:
    * {
+   *   n: [String] The recipe name,
    *   b: [String] The base dough weight,
    *   i: [Array] The list of ingredients
    *     => {
@@ -121,6 +135,7 @@ export default class extends Controller {
     })
 
     const jsonFormula = {
+      n: this.formulaName,
       b: this.totalDoughWeight,
       i: serializedIngredients
     }
@@ -135,6 +150,7 @@ export default class extends Controller {
     })
 
     this.totalDoughWeight = deserializedFormula.b
+    this.formulaName = deserializedFormula.n
   }
 
   sanitizeFloatInput(value) {
@@ -153,7 +169,5 @@ export default class extends Controller {
     return intValue
   }
 
-  // TODO Allow swapping of weights
-  //      Generate copyable link
-  //      Stabilize table so it doesn't shrink when last ingredient is removed
+  // TODO Generate copyable link
 }
