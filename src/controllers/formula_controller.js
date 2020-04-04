@@ -59,7 +59,7 @@ export default class extends Controller {
       element.cells[WEIGHT_COLUMN].childNodes[0].value = finalIngredientWeight
     })
 
-    this.formulaLinkTarget.value = `${document.location.origin}?${this.serializeFormula()}`
+    this.formulaLinkTarget.value = `${document.location.href}?${this.serializeFormula()}`
   }
 
   calculateDoughWeight(event) {
