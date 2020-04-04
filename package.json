@@ -8,7 +8,7 @@
   "private": false,
   "scripts": {
     "dev": "parcel public/index.html",
-    "build": "rm -rf build/ && parcel build public/index.html --out-dir build/"
+    "build": "parcel build public/index.html --out-dir ./"
   },
   "dependencies": {
     "stimulus": "^1.1.1",
