@@ -65,4 +65,4 @@ parcelRequire=function(e,r,t,n){var i,o="function"==typeof parcelRequire&&parcel
 },{"stimulus":"DDMZ","urlon":"G1WQ"}],"wRA4":[function(require,module,exports) {
 "use strict";var r=require("stimulus"),e=t(require("./src/controllers/formula_controller.js"));function t(r){return r&&r.__esModule?r:{default:r}}var u=r.Application.start();u.register("formula",e.default);
 },{"stimulus":"DDMZ","./src/controllers/formula_controller.js":"AwHe"}]},{},["wRA4"], null)
-//# sourceMappingURL=baker-formula-app/application.acc2b605.js.map
+//# sourceMappingURL=/baker-formula-app/application.acc2b605.js.map
