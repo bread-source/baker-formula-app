@@ -8,7 +8,7 @@
   "private": false,
   "scripts": {
     "dev": "parcel public/index.html",
-    "build": "parcel build public/index.html --out-dir ./"
+    "build": "parcel build public/index.html --out-dir ./ --public-url ./baker-formula-app/"
   },
   "dependencies": {
     "stimulus": "^1.1.1",
