@@ -9,11 +9,16 @@ export default class extends Controller {
       "ingredient",
       "ingredientTable",
       "totalPercent",
-      "totalDoughWeight"
+      "totalDoughWeight",
+      "formulaLink"
     ]
   }
 
   connect() {
+    if (document.queryCommandSupported("copy")) {
+      this.element.classList.add("clipboard--supported")
+    }
+
     try {
       // Attempt to parse the URL
       const serializedRecipe = window.location.search.substring(1)
@@ -53,6 +58,8 @@ export default class extends Controller {
       finalIngredientWeight = Math.round(finalIngredientWeight * 100) / 100.0
       element.cells[WEIGHT_COLUMN].childNodes[0].value = finalIngredientWeight
     })
+
+    this.formulaLinkTarget.value = `${document.location.origin}?${this.serializeFormula()}`
   }
 
   calculateDoughWeight(event) {
@@ -139,7 +146,8 @@ export default class extends Controller {
       b: this.totalDoughWeight,
       i: serializedIngredients
     }
-    console.log(URLON.stringify(jsonFormula))
+
+    return URLON.stringify(jsonFormula)
   }
 
   deserializeFormula(formula) {
@@ -169,5 +177,9 @@ export default class extends Controller {
     return intValue
   }
 
-  // TODO Generate copyable link
+  copy(event) {
+    event.preventDefault()
+    this.formulaLinkTarget.select()
+    document.execCommand("copy")
+  }
 }
